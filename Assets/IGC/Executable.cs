@@ -17,7 +17,7 @@ public class Executable : MonoBehaviour
 		argv = pc.argv;
 		ParseFlags();
 
-		Main ();
+		Action ();
 	}
 	
 	void ParseFlags()
@@ -35,10 +35,11 @@ public class Executable : MonoBehaviour
 		}
 	}
 
-	public virtual void Main()
+	public virtual void Action()
 	{
 		print(new System.Diagnostics.StackTrace());
-		print("this is a base class response");
-		print ("base prog: [argv " + argv.Length + "] [flags " + flags.Count + "]");
+		print(argv);
+        print(flags);
+        print ("base prog: [argv " + argv.Length + "] [flags " + flags.Count + "]");
 	}
 }

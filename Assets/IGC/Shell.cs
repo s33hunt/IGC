@@ -146,7 +146,7 @@ public class Shell : MonoBehaviour
 			}
 		}
 
-		if(historyPointer == history.Count-1){history [historyPointer] = commandLineText;}
+		//if(historyPointer == history.Count-1){history [historyPointer] = commandLineText;}
 
 		PrintBuffer ();
 	}
@@ -253,9 +253,12 @@ public class Shell : MonoBehaviour
 	}
 	void ReturnKey()
 	{
-		if (!string.IsNullOrEmpty (commandLineText)) {history.Add (commandLineText);}
-
-		fullText += FormatDisplayString (promptText + commandLineText)+"\n";
+        if (!string.IsNullOrEmpty (commandLineText)) {
+			history[history.Count-1] = commandLineText;
+			history.Add("");
+		}
+        
+        fullText += FormatDisplayString (promptText + commandLineText)+"\n";
 
 		ParsedCommandPhrase pc = new ParsedCommandPhrase (commandLineText);
 		if (os != null) {
