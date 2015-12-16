@@ -9,6 +9,7 @@ using System.Collections.Generic;
 //load files (they reach up to os)
 //load users (from users file)
 //load programs (from path: /bin & /usr/bin)
+//init shell
 
 //on command execution
 // if prog in programs, execute
@@ -30,34 +31,28 @@ public class OperatingSystem : MonoBehaviour
 		userRegistry = transform.Find ("user registry");
 		fileSystem = transform.Find("file system").GetComponent<FileSystem>();
 
-		display.os = this;
+		display.os = fileSystem.os = this;
+		
+		BootUp ();
+	}
+
+	void BootUp()
+	{
+		//filsystem _______________________________________________________
 
 		fileSystem.Init();
-		OnFileSystemReadyLoaded ();
-	}
-
-	void OnFileSystemReadyLoaded()
-	{
-        //...
-        InitializeUserRegistry();
-	}
-	void InitializeUserRegistry()
-	{
-        //...
-        LoadPrograms();
-    }
-
-	void LoadPrograms()
-	{
-		//grab exe's from bin only on system load
-		Executable[] bin = fileSystem.transform.Find ("bin").GetComponentsInChildren<Executable> ();
+		
+		//user registry ___________________________________________________
+		
+		//...
+		
+		//programs ________________________________________________________
+		
+		Executable[] bin = fileSystem.transform.Find ("bin").GetComponentsInChildren<Executable> ();//only grab exe's from bin on system load
 		foreach (Executable p in bin) {programs.Add(p.name, p);}
 
-		InitializeShell();
-	}
+		//shell ___________________________________________________________
 
-	void InitializeShell()
-	{
 		display.Init();
 	}
 

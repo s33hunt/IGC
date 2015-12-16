@@ -8,13 +8,14 @@ public class File : MonoBehaviour
 	public bool isDirectory = false;
 	public Path path;
     public bool hidden { get { return path.end[0] == '.'; } }
-	public Executable exe;
-
+	[HideInInspector] public FileSystem fileSystem;
+	[HideInInspector] public Executable exe;
 
 	void Awake()
 	{
 		path = new Path (GetPath());
 		exe = GetComponent<Executable>();
+		if(exe != null) { exe.file = this; }
 		
         /*print (
 			path.full+"\n"+

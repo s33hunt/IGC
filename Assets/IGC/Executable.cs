@@ -10,6 +10,7 @@ public class Executable : MonoBehaviour
 	[HideInInspector] string[] argv;//this is just for typing convenience
 	[HideInInspector] public ParsedCommandPhrase pc;
 	[HideInInspector] public Dictionary<string, string> flags;
+	[HideInInspector] public File file;
 
 	public void Execute(ParsedCommandPhrase pc)
 	{
