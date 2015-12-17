@@ -22,17 +22,24 @@ public class OperatingSystem : MonoBehaviour
 	[HideInInspector] Shell shell;
 	[HideInInspector] Transform userRegistry;
 	[HideInInspector] public FileSystem fileSystem;
-	public EnvironmentVariables env = new EnvironmentVariables();
+	public EnvironmentVariables env;
 
 	public class EnvironmentVariables
 	{
-		public Path cwdPath = new Path("/");
+		public Path cwdPath;
 		public string cwd { get { return cwdPath.full; } }
+		OperatingSystem os;
+		public EnvironmentVariables(OperatingSystem os) {
+			this.os = os;
+			cwdPath = new Path("/", os);
+		}
 	}
 
 
 	void Start()
 	{
+		env = new EnvironmentVariables(this);
+		print("env set");
 		shell = transform.parent.Find ("display").GetComponent<Shell>();
 		userRegistry = transform.Find ("user registry");
 		fileSystem = transform.Find("file system").GetComponent<FileSystem>();

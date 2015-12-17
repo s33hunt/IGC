@@ -10,31 +10,36 @@ public class File : MonoBehaviour
 	public Path path;
     public bool hidden { get { return path.end[0] == '.'; } }
 	[HideInInspector] public FileSystem fileSystem;
+	[HideInInspector] public OperatingSystem os;
 	[HideInInspector] public Executable exe;
-	public Path[] children
-	{
-		get
-		{
-			if (!isDirectory){return null;}
+	File[] _children;
+	public int childCount {
+		get {
+			if (!isDirectory) { return 0; }
+			return transform.childCount;
+		}
+	}
+	public File[] children {
+		get {
+			if (!isDirectory){_children = new File[0];}
 
-			Path[] paths = new Path[transform.childCount];
-			int i = 0;
-			foreach(Transform t in transform)
-			{
-				File f = t.GetComponent<File>();
-				if(f != null)
-				{
-					paths[i++] = f.path;
+			if(_children == null || transform.childCount != _children.Length) {
+				_children = new File[transform.childCount];
+				int i = 0;
+				foreach (Transform t in transform) {
+					File f = t.GetComponent<File>();
+					if (f != null) {
+						_children[i++] = f;
+					}
 				}
 			}
-
-			return paths;
+			return _children;
 		}
 	}
 
-	void Awake()
+	public void Init()
 	{
-		path = new Path (GetPath());
+		path = new Path (GetPath(), os);
 		exe = GetComponent<Executable>();
 		if(exe != null) { exe.file = this; }
 		
