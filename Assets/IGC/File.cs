@@ -10,6 +10,26 @@ public class File : MonoBehaviour
     public bool hidden { get { return path.end[0] == '.'; } }
 	[HideInInspector] public FileSystem fileSystem;
 	[HideInInspector] public Executable exe;
+	public Path[] children
+	{
+		get
+		{
+			if (!isDirectory){return null;}
+
+			Path[] paths = new Path[transform.childCount];
+			int i = 0;
+			foreach(Transform t in transform)
+			{
+				File f = t.GetComponent<File>();
+				if(f != null)
+				{
+					paths[i++] = f.path;
+				}
+			}
+
+			return paths;
+		}
+	}
 
 	void Awake()
 	{

@@ -4,21 +4,28 @@ using System.Collections.Generic;
 
 //needs to be able to take multiple 1 letter flags
 
+[RequireComponent(typeof(File))]
 public class Executable : MonoBehaviour
 {
 	public string[] acceptedFlags;
-	[HideInInspector] string[] argv;//this is just for typing convenience
+	[HideInInspector] public string[] argv;//this is just for typing convenience
 	[HideInInspector] public ParsedCommandPhrase pc;
 	[HideInInspector] public Dictionary<string, string> flags;
 	[HideInInspector] public File file;
+	protected OperatingSystem os { get { return file.fileSystem.os; } }
+	protected ReturnData rd;
 
-	public void Execute(ParsedCommandPhrase pc)
+	public ReturnData Execute(ParsedCommandPhrase pc)
 	{
 		this.pc = pc;
 		argv = pc.argv;
 		ParseFlags();
 
+		rd = new ReturnData();
+
 		Action ();
+
+		return rd;
 	}
 	
 	void ParseFlags()
@@ -36,11 +43,14 @@ public class Executable : MonoBehaviour
 		}
 	}
 
+	public class ReturnData
+	{
+		public bool persist = false;
+		public string standardOut = "";
+	}
+
 	public virtual void Action()
 	{
-		print(new System.Diagnostics.StackTrace());
-		print(argv);
-        print(flags);
-        print ("base prog: [argv " + argv.Length + "] [flags " + flags.Count + "]");
+		rd.standardOut = "base prog: [argv " + argv.Length + "] [flags " + flags.Count + "]";
 	}
 }

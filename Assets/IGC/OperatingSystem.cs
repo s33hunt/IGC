@@ -19,19 +19,25 @@ public class OperatingSystem : MonoBehaviour
 {
 	public Dictionary<string, Executable> programs = new Dictionary<string, Executable>();
 
-	Shell display;
-	Transform userRegistry;
-	FileSystem fileSystem;
+	[HideInInspector] Shell shell;
+	[HideInInspector] Transform userRegistry;
+	[HideInInspector] public FileSystem fileSystem;
+	public EnvironmentVariables env = new EnvironmentVariables();
 
+	public class EnvironmentVariables
+	{
+		public Path cwdPath = new Path("/");
+		public string cwd { get { return cwdPath.full; } }
+	}
 
 
 	void Start()
 	{
-		display = transform.parent.Find ("display").GetComponent<Shell>();
+		shell = transform.parent.Find ("display").GetComponent<Shell>();
 		userRegistry = transform.Find ("user registry");
 		fileSystem = transform.Find("file system").GetComponent<FileSystem>();
 
-		display.os = fileSystem.os = this;
+		shell.os = fileSystem.os = this;
 		
 		BootUp ();
 	}
@@ -53,7 +59,7 @@ public class OperatingSystem : MonoBehaviour
 
 		//shell ___________________________________________________________
 
-		display.Init();
+		shell.Init();
 	}
 
 }

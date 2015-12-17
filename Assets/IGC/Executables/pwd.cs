@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class ls : Executable
+public class pwd : Executable
 {
 	public override void Action()
 	{
-		rd.standardOut = file.path.full;
+		rd.standardOut = os.env.cwd;
 	}
 }

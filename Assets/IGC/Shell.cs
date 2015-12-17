@@ -79,10 +79,6 @@ public class Shell : MonoBehaviour
 
 	void Update ()
 	{
-		if (Input.GetMouseButtonDown (0)) {
-			Print("fart");
-		}
-
 		if(Input.GetAxis ("Mouse ScrollWheel") > 0){scrollOffset++;ProcessInput(KeyCode.None);}
 		else if(Input.GetAxis ("Mouse ScrollWheel") < 0){scrollOffset--;ProcessInput(KeyCode.None);}
 
@@ -205,9 +201,9 @@ public class Shell : MonoBehaviour
 		return string.Join ("\n", lines.ToArray ());
 	}
 
-	void Print(string s)
+	void Print(string s, bool includeCmdTxt = true)
 	{
-		fullText += FormatDisplayString (promptText + commandLineText)+"\n";
+		if (includeCmdTxt) { fullText += FormatDisplayString(promptText + commandLineText) + "\n"; }
 		fullText += FormatDisplayString (s)+"\n";
 		commandLineText = "";
 		PrintBuffer ();
@@ -261,15 +257,18 @@ public class Shell : MonoBehaviour
         fullText += FormatDisplayString (promptText + commandLineText)+"\n";
 
 		ParsedCommandPhrase pc = new ParsedCommandPhrase (commandLineText);
+		Executable.ReturnData rd = new Executable.ReturnData();
 		if (os != null) {
 			if(os.programs.ContainsKey(pc.argv[0])){
-				os.programs[pc.argv[0]].Execute(pc);
+				rd = os.programs[pc.argv[0]].Execute(pc);
 			}
 		}
 
 		commandLineText = "";
 		historyPointer = history.Count - 1;
 
+		if (!string.IsNullOrEmpty(rd.standardOut)) { Print(rd.standardOut, false); }
+		
 		auxDisplay.text = string.Join ("\n", history.ToArray ());
 	}
 	void Delete()
