@@ -68,4 +68,12 @@ public class File : MonoBehaviour
 		}
 		return output;
 	}
+
+	public bool containsFile(string fname)
+	{
+		if (!isDirectory) { return false; }
+		var c = transform.Find(fname);
+		if (c == null) { return false; }
+		return true;
+	}
 }

@@ -6,13 +6,11 @@ public class Utils
 
 	public static string StringifyArray<T>(T[] array, string seporator = ", ", string start = "", string end = "")
 	{
-		if(array.Length == 0){return "";}
-		string output = start;
+		if(array.Length == 0){return start+end;}
+		string output = "";
 		for (int i=0; i<array.Length; i++) {output += array[i].ToString()+seporator;}
-		return output.Remove(
-					Mathf.Max (0, output.Length - seporator.Length),
-					Mathf.Min (output.Length, seporator.Length)
-				) + end;
+		output = output.Remove(output.Length - seporator.Length, seporator.Length);
+		return start + output + end;
 	}
 
 	public static string[] SplitString(string str, string sep)

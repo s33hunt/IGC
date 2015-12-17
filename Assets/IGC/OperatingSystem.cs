@@ -26,7 +26,23 @@ public class OperatingSystem : MonoBehaviour
 
 	public class EnvironmentVariables
 	{
-		public Path cwdPath;
+		public File cwdir;
+		public Path _cwdPath;
+		public Path cwdPath
+		{
+			get { return _cwdPath; }
+			set
+			{
+				if (value.isValid)
+				{
+				 	if (os.fileSystem.IsDir(value))
+					{
+						_cwdPath = value;
+						cwdir = os.fileSystem.GetFile(value);
+					}
+				}
+			}
+		}
 		public string cwd { get { return cwdPath.full; } }
 		OperatingSystem os;
 		public EnvironmentVariables(OperatingSystem os) {
@@ -38,12 +54,9 @@ public class OperatingSystem : MonoBehaviour
 
 	void Start()
 	{
-		env = new EnvironmentVariables(this);
-		print("env set");
 		shell = transform.parent.Find ("display").GetComponent<Shell>();
 		userRegistry = transform.Find ("user registry");
 		fileSystem = transform.Find("file system").GetComponent<FileSystem>();
-
 		shell.os = fileSystem.os = this;
 		
 		BootUp ();
@@ -54,13 +67,17 @@ public class OperatingSystem : MonoBehaviour
 		//filsystem _______________________________________________________
 
 		fileSystem.Init();
-		
+
+		//setup env _______________________________________________________
+
+		env = new EnvironmentVariables(this);
+
 		//user registry ___________________________________________________
-		
+
 		//...
-		
+
 		//programs ________________________________________________________
-		
+
 		Executable[] bin = fileSystem.transform.Find ("bin").GetComponentsInChildren<Executable> ();//only grab exe's from bin on system load
 		foreach (Executable p in bin) {programs.Add(p.name, p);}
 

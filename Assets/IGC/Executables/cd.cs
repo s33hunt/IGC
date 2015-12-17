@@ -7,10 +7,8 @@ public class cd : Executable
 	{
 		if(argv.Length == 2) {
 			Path p = new Path(argv[1], os);
-			if (p.isPath)
+			if (p.exists)
 			{
-				print(p.ToString());
-
 				if (os.fileSystem.IsDir(p))
 				{
 					os.env.cwdPath = p;

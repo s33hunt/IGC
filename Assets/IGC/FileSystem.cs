@@ -6,6 +6,7 @@ public class FileSystem : MonoBehaviour
 {
     public Dictionary<string, File> files = new Dictionary<string, File>();
 	[HideInInspector] public OperatingSystem os;
+	
 
 	public void Init ()
     {
@@ -20,13 +21,38 @@ public class FileSystem : MonoBehaviour
 		}
 	}
 
-	//public void CreateFil(string path)
+	public void CreateFile(string targetDir, string filename, bool isDir = false)
+	{
+		File f = GetFile(targetDir);
+		if(f == null) { return; }
+		if (!f.isDirectory) { return; }
+		if (f.containsFile(filename)) { return; }
 
-	
+		GameObject go = new GameObject(filename);
+		go.transform.parent = f.transform;
+		go.transform.position = Vector3.zero;
+		File newfile = go.AddComponent<File>();
+		newfile.isDirectory = isDir;
+		newfile.fileSystem = this;
+		newfile.os = os;
+		newfile.Init();
+		files.Add(newfile.path.full, newfile);
+	}
+
+	public void DeleteFile(Path target)
+	{
+		File f = GetFile(target);
+		if (f == null) { return; }
+
+		files.Remove(f.path.full);
+		Destroy(f.gameObject);
+	}
+
+
 	public bool FileExists(Path p) { return files.ContainsKey(p.full); ; }
 	public bool FileExists(string fullpath) {
 		Path p = new Path(fullpath, os);
-		if (!p.isPath) { return false; }
+		if (!p.isValid) { return false; }
 		return files.ContainsKey(p.full); ;
 	}
 	
@@ -34,7 +60,7 @@ public class FileSystem : MonoBehaviour
 	public File GetFile(Path p){return _GetFile(p.full);}
 	public File GetFile(string fullpath) {
 		Path p = new Path(fullpath, os);
-		if (!p.isPath) { return null; }
+		if (!p.isValid) { return null; }
 		return _GetFile(p.full);
 	}
 
