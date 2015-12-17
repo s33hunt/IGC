@@ -2,6 +2,7 @@
 using System.Collections;
 
 //needs perms
+//needs legal name-char check
 
 public class File : MonoBehaviour 
 {
@@ -47,6 +48,8 @@ public class File : MonoBehaviour
 
 	string GetPath()
 	{
+		if(name == "file system"){return "/";}
+		
 		string output = "/"+name;
 		Transform up = transform.parent;
 

@@ -66,15 +66,12 @@ public class Shell : MonoBehaviour
 		_cursorOffset = 0,
 		_cursorPosition = 0;
 
-
-	TextMesh auxDisplay;
 	public void Init()
 	{
 		history.Add ("");
 		textDisplay = GetComponent<TextMesh> ();
 		keyRepeatTime = 1f / keyRepeatsPerSecond;
 		textDisplay.text = promptText;
-		auxDisplay = transform.parent.Find ("hist").GetComponent<TextMesh>();//THIS IS TEMP
 	}
 
 	void Update ()
@@ -83,7 +80,12 @@ public class Shell : MonoBehaviour
 		else if(Input.GetAxis ("Mouse ScrollWheel") < 0){scrollOffset--;ProcessInput(KeyCode.None);}
 
 		//detect keys
-		if(Input.anyKey){
+		//+ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + 
+		//+ this should be refactored into a method that accepts an input code and acts on it
+		//+ multiple input options (keypard, virtualkeyboard, phone keyboard, etc?
+		//+ check for input type on start and add the appropriate interface
+		//+ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + 
+		if (Input.anyKey){
 			foreach (KeyCode kc in InputCharacters.modifierKeys) {
 				if(Input.GetKeyDown(kc)){
 					if(!keysDown.Contains(kc)){keysDown.Add(kc);}
@@ -176,7 +178,8 @@ public class Shell : MonoBehaviour
 
 	string FormatDisplayString(string unformatted)
 	{
-		int i=0, wordPointer = 0;
+		//int i=0, 
+		int wordPointer = 0;
 		List<string> 
 			words = new List<string> (),
 			lines = new List<string> ();
@@ -268,8 +271,6 @@ public class Shell : MonoBehaviour
 		historyPointer = history.Count - 1;
 
 		if (!string.IsNullOrEmpty(rd.standardOut)) { Print(rd.standardOut, false); }
-		
-		auxDisplay.text = string.Join ("\n", history.ToArray ());
 	}
 	void Delete()
 	{

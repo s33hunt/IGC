@@ -14,7 +14,7 @@ public class FileSystem : MonoBehaviour
 		{
 			f.fileSystem = this;
 			files.Add(f.path.full, f);
-			print("loading file: " + f.path.full);
+			//print("loading file: " + f.path.full);
 		}
 	}
 
