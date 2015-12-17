@@ -1,14 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+//handle bad path
+
 public class Path
 {
 	public static string root = "/";
 
 	public string[] segments;
 	public string full, end, parent, extension;
-
-
+	
 	public static bool IsPath(string path)
 	{
 		bool 
@@ -26,16 +27,9 @@ public class Path
 	
 	public Path(string path)
 	{
-
-		Debug.Log(IsPath(""));
-		Debug.Log(IsPath("/bin"));
-		Debug.Log(IsPath("/fart.exe"));
-		Debug.Log(IsPath("\"hemper/asdf\"/skdfj"));
-		Debug.Log(IsPath("\"hemper/asdf\""));
-		Debug.Log(IsPath("\"hemper///asdf\""));
-		Debug.Log("---------------------");
-
-		full = path;
+		if (!IsPath(path)) { return; }
+		
+		full = path.Replace("\"", "");
 		segments = Utils.SplitString (path, "/");
 		end = segments.Length > 0 ? segments [segments.Length - 1] : root; 
 		parent = segments.Length > 1

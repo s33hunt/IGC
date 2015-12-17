@@ -261,15 +261,20 @@ public class Shell : MonoBehaviour
 
 		ParsedCommandPhrase pc = new ParsedCommandPhrase (commandLineText);
 		Executable.ReturnData rd = new Executable.ReturnData();
+		bool isCommand = false;
 		if (os != null) {
-			if(os.programs.ContainsKey(pc.argv[0])){
-				rd = os.programs[pc.argv[0]].Execute(pc);
+			if (!pc.error){
+				isCommand = os.programs.ContainsKey(pc.argv[0]);
+				if (isCommand){rd = os.programs[pc.argv[0]].Execute(pc);}
 			}
 		}
 
 		commandLineText = "";
 		historyPointer = history.Count - 1;
 
+		
+		if (pc.error) { Print("input error: "+pc.errorMessage); }
+		else if (!isCommand && !string.IsNullOrEmpty(pc.argv[0])) { Print("command not found: " + pc.argv[0]); }
 		if (!string.IsNullOrEmpty(rd.standardOut)) { Print(rd.standardOut, false); }
 	}
 	void Delete()

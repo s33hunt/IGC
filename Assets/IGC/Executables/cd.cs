@@ -5,7 +5,12 @@ public class cd : Executable
 {
 	public override void Action()
 	{
-		
-		rd.standardOut = Utils.StringifyArray(argv);
+		if(argv.Length == 2) {
+			rd.standardOut = "" + Path.IsPath(argv[1]) + " " + argv[1];
+		}
+		else
+		{
+			rd.standardOut = "[malformed command]\nformat: cd <path>";
+		}
 	}
 }
