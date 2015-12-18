@@ -17,6 +17,25 @@ public class Shell : MonoBehaviour
 		keyRepeatsPerSecond = 10,
 		maxTextLines = 100;
 
+	string[] lines;
+	bool cursorEnabled = true;
+	Renderer cursorRenderer;
+	float
+		lastKeyDownTime = 0,
+		lastKeyRepeatTime = 0,
+		keyRepeatTime,
+		lastCursorBlink = 0;
+	string
+		fullText = "",
+		commandLineText = "",
+		CLISession;
+	int
+		lineCount = 0,
+		_historyPointer = 0,
+		_scrollOffset = 0,
+		_cursorOffset = 0,
+		_cursorOffsetVertical = 0,
+		_cursorPosition = 0;
 	Transform cursor;
 	TextMesh textDisplay;
 	List<KeyCode> keysDown = new List<KeyCode> ();
@@ -29,9 +48,14 @@ public class Shell : MonoBehaviour
 			lastKeyDownTime = Time.time;
 		}
 	}
+	bool editMode {
+		get { return textMode == TextMode.TextEdit; }
+		set { if (value) EnterTextEditMode(); } }
+	bool CLIMode {
+		get { return textMode == TextMode.CLI; }
+		set { if (value) EnterCLIMode(); } }
 	bool shiftKeyDown {
 		get { return (keysDown.Contains(KeyCode.LeftShift) || keysDown.Contains(KeyCode.RightShift)); }
-		//get { return (Input.GetKey(KeyCode.LeftShift) || Input.GetKey (KeyCode.RightShift)); }
 	}
 	bool controlKeyDown {
 		get { return (Input.GetKey(KeyCode.LeftControl) || Input.GetKey (KeyCode.RightControl)); }
@@ -41,7 +65,19 @@ public class Shell : MonoBehaviour
 	}
 	int cursorOffset {
 		get {return _cursorOffset;}
-		set {_cursorOffset = Mathf.Clamp(value, 0, commandLineText.Length);}
+		set {
+
+			if (textMode == TextMode.TextEdit) {
+				_cursorOffset = Mathf.Clamp(value, 0, width);
+			} else if (textMode == TextMode.CLI) {
+				_cursorOffset = Mathf.Clamp(value, 0, commandLineText.Length);
+			}
+		}
+	}
+	int cursorOffsetVertical
+	{
+		get { return _cursorOffsetVertical; }
+		set { _cursorOffsetVertical = Mathf.Clamp(value, 0, lineCount); }
 	}
 	int cursorPosition {
 		get {return commandLineText.Length - cursorOffset;}
@@ -55,22 +91,6 @@ public class Shell : MonoBehaviour
 		get { return _historyPointer; }
 		set { _historyPointer = Mathf.Clamp(value, 0, history.Count - 1);}
 	}
-	bool cursorEnabled = true;
-	Renderer cursorRenderer;
-	float 
-		lastKeyDownTime=0, 
-		lastKeyRepeatTime=0, 
-		keyRepeatTime,
-		lastCursorBlink = 0;
-	string 
-		fullText = "",
-		commandLineText = "";
-	int 
-		lineCount = 0,
-		_historyPointer = 0,
-		_scrollOffset = 0,
-		_cursorOffset = 0,
-		_cursorPosition = 0;
 	
 
 	public void Init()
@@ -88,12 +108,17 @@ public class Shell : MonoBehaviour
 		cursorRenderer = cursor.GetComponentInChildren<Renderer>();
 		textDisplay.color = textColor;
 		cursorRenderer.material.color = textColor;
+
+		UpdateCursorPos();
 	}
 
 	void Update ()
 	{
-		if(Input.GetAxis ("Mouse ScrollWheel") > 0){scrollOffset++;ProcessInput(KeyCode.None);}
+		//scroll with wheel
+		if (Input.GetAxis ("Mouse ScrollWheel") > 0){scrollOffset++;ProcessInput(KeyCode.None);}
 		else if(Input.GetAxis ("Mouse ScrollWheel") < 0){scrollOffset--;ProcessInput(KeyCode.None);}
+		//temp testing mode switcher
+		if (Input.GetKeyDown(KeyCode.Escape)) { if (CLIMode) { editMode = true; } else { CLIMode = true; } }
 
 		//detect keys
 		//+ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + 
@@ -128,8 +153,11 @@ public class Shell : MonoBehaviour
 			//key repetition
 			if (lastKeyDown != KeyCode.None && Time.time - lastKeyDownTime > repeatHeldKeyTime) {RepeatHeldKey();}
 
-			scrollOffset = 0;//jump to typing of scrolled
-			ShowCursor();
+			if(CLIMode)
+			{
+				scrollOffset = 0;//jump to typing of scrolled
+				ShowCursor();
+			}
 		}
 
 		//update keys held list
@@ -139,8 +167,7 @@ public class Shell : MonoBehaviour
 		//reset key up
 		if (Input.GetKeyUp (lastKeyDown)) {lastKeyDown = KeyCode.None;}
 
-		UpdateCursorPos();
-		if(scrollOffset > 0) {
+		if(scrollOffset > 0 && CLIMode) {
 			HideCursor();
 		} else {
 			if(Time.time > lastCursorBlink + cursorBlinkSpeed) {
@@ -153,14 +180,48 @@ public class Shell : MonoBehaviour
 		//print(Utils.StringifyArray<KeyCode>(keysDown.ToArray()));
 	}
 
+	public void EnterTextEditMode()
+	{
+		textMode = TextMode.TextEdit;
+		CLISession = fullText;
+		fullText = "";
+		PrintBuffer();
+	}
+	public void EnterCLIMode()
+	{
+		textMode = TextMode.CLI;
+		fullText = CLISession;
+		CLISession = "";
+		PrintBuffer();
+	}
+
+	Vector2 cursorXY
+	{
+		get {
+			int y = cursorOffsetVertical - scrollOffset;
+			return new Vector2(cursorOffset, y == 0 ? 1 : 0);
+		}
+	}
+
 	void ShowCursor(){ if (!cursorEnabled) cursorRenderer.enabled = cursorEnabled = true; }
 	void HideCursor(){ if (cursorEnabled) cursorRenderer.enabled = cursorEnabled = false; }
 	void UpdateCursorPos()
 	{
-		cursor.localPosition = new Vector3(
-			(commandLineText.Length - cursorOffset + promptText.Length) * cursor.localScale.x,
-			cursor.localScale.y * (displayLength == 0 ? 0 : 1 - displayLength),
-			0);
+		if (editMode) {
+			cursor.localPosition = new Vector3(
+				(commandLineText.Length - cursorOffset + promptText.Length) * cursor.localScale.x,
+				cursor.localScale.y * -Mathf.Clamp((displayLength - (cursorOffsetVertical - scrollOffset)), 0, displayLength-1),
+				0
+			);
+			print(cursorXY);
+		} else if (CLIMode) {
+			cursor.localPosition = new Vector3(
+				(commandLineText.Length - cursorOffset + promptText.Length) * cursor.localScale.x,
+				cursor.localScale.y * (displayLength == 0 ? 0 : 1 - displayLength),
+				0
+			);
+		}
+		
 	}
 
 	void RepeatHeldKey()
@@ -204,13 +265,20 @@ public class Shell : MonoBehaviour
 					: InputCharacters.typedChars[kc];
 			}
 
+			if (CLIMode)
+			{
+				//if at right end
+				if (cursorPosition == commandLineText.Length) { commandLineText += c; }
+				//if in middle
+				else if (cursorPosition != 0) { commandLineText = commandLineText.Substring(0, cursorPosition) + c + commandLineText.Substring(cursorPosition, cursorOffset); }
+				//if at left end
+				else { commandLineText = c + commandLineText; }
+			}
+			else if (editMode)
+			{
+				fullText += c;
+			}
 			
-			//if at right end
-			if (cursorPosition == commandLineText.Length) {commandLineText += c; }
-			//if in middle
-			else if (cursorPosition != 0) {commandLineText = commandLineText.Substring(0, cursorPosition) + c + commandLineText.Substring(cursorPosition, cursorOffset);}
-			//if at left end
-			else {commandLineText = c + commandLineText;}
 		}
 	}
 
@@ -260,11 +328,11 @@ public class Shell : MonoBehaviour
 		commandLineText = "";
 		PrintBuffer ();
 	}
-
+	
 	void PrintBuffer()
 	{
-		string output = fullText + FormatDisplayString(promptText + commandLineText);
-		string[] lines = output.Split(new char[1]{'\n'});
+		string output = fullText + (CLIMode ? FormatDisplayString(promptText + commandLineText) : "");
+		lines = output.Split(new char[1]{'\n'});
 		lineCount = lines.Length;
 		
 		int startIndex = displayLength >= height && scrollOffset > 0
@@ -276,28 +344,56 @@ public class Shell : MonoBehaviour
 		output = string.Join ("\n", displayLines.ToArray ());
 		
 		textDisplay.text = output;
-	}
 
+		UpdateCursorPos();
+	}
+	
 	#region KeyActions
-	void LeftArrow(){cursorOffset ++;}
-	void RightArrow(){cursorOffset --;}
+	void LeftArrow()
+	{
+		cursorOffset++;
+		UpdateCursorPos();
+	}
+	void RightArrow()
+	{
+		cursorOffset --;
+		UpdateCursorPos();
+	}
 	void UpArrow()
 	{
-		if (controlKeyDown) {
-			scrollOffset++;
-		} else {
-			historyPointer--;
-			commandLineText = history [historyPointer];
+		if (editMode) {
+			cursorOffsetVertical++;
+			if(cursorOffsetVertical - scrollOffset > displayLength) {
+				scrollOffset++;
+			}
+		} else if (CLIMode) {
+			if (controlKeyDown) {
+				scrollOffset++;
+			} else {
+				historyPointer--;
+				commandLineText = history[historyPointer];
+				cursorOffset = 0;
+			}
 		}
+		UpdateCursorPos();
 	}
 	void DownArrow()
 	{
-		if (controlKeyDown) {
-			scrollOffset--;
-		} else {
-			historyPointer++;
-			commandLineText = history[historyPointer];
+		if(editMode) {
+			cursorOffsetVertical--;
+			if (cursorOffsetVertical - scrollOffset < 1) {
+				scrollOffset--;
+			}
+		} else if (CLIMode) {
+			if (controlKeyDown) {
+				scrollOffset--;
+			} else {
+				historyPointer++;
+				commandLineText = history[historyPointer];
+				cursorOffset = 0;
+			}
 		}
+		UpdateCursorPos();
 	}
 	void ReturnKey()
 	{
@@ -306,25 +402,28 @@ public class Shell : MonoBehaviour
 			history.Add("");
 		}
         
-        fullText += FormatDisplayString (promptText + commandLineText)+"\n";
+        fullText += FormatDisplayString (CLIMode ? promptText + commandLineText : "")+"\n";
 
-		ParsedCommandPhrase pc = new ParsedCommandPhrase (commandLineText);
-		Executable.ReturnData rd = new Executable.ReturnData();
-		bool isCommand = false;
-		if (os != null) {
-			if (!pc.error){
-				isCommand = os.programs.ContainsKey(pc.argv[0]);
-				if (isCommand){rd = os.programs[pc.argv[0]].Execute(pc);}
+		if (CLIMode) {
+			ParsedCommandPhrase pc = new ParsedCommandPhrase(commandLineText);
+			Executable.ReturnData rd = new Executable.ReturnData();
+			bool isCommand = false;
+			if (os != null) {
+				if (!pc.error) {
+					isCommand = os.programs.ContainsKey(pc.argv[0]);
+					if (isCommand) { rd = os.programs[pc.argv[0]].Execute(pc); }
+				}
 			}
+
+			commandLineText = "";
+			historyPointer = history.Count - 1;
+
+			if (pc.error) { Print("input error: " + pc.errorMessage); }
+			else if (!isCommand && !string.IsNullOrEmpty(pc.argv[0])) { Print("command not found: " + pc.argv[0]); }
+			if (!string.IsNullOrEmpty(rd.standardOut)) { Print(rd.standardOut, false); }
 		}
-
-		commandLineText = "";
-		historyPointer = history.Count - 1;
-
 		
-		if (pc.error) { Print("input error: "+pc.errorMessage); }
-		else if (!isCommand && !string.IsNullOrEmpty(pc.argv[0])) { Print("command not found: " + pc.argv[0]); }
-		if (!string.IsNullOrEmpty(rd.standardOut)) { Print(rd.standardOut, false); }
+		cursorOffset = 0;
 	}
 	void Delete()
 	{
