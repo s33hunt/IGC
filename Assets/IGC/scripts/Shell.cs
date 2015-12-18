@@ -30,7 +30,8 @@ public class Shell : MonoBehaviour
 		}
 	}
 	bool shiftKeyDown {
-		get { return (Input.GetKey(KeyCode.LeftShift) || Input.GetKey (KeyCode.RightShift)); }
+		get { return (keysDown.Contains(KeyCode.LeftShift) || keysDown.Contains(KeyCode.RightShift)); }
+		//get { return (Input.GetKey(KeyCode.LeftShift) || Input.GetKey (KeyCode.RightShift)); }
 	}
 	bool controlKeyDown {
 		get { return (Input.GetKey(KeyCode.LeftControl) || Input.GetKey (KeyCode.RightControl)); }
@@ -147,6 +148,9 @@ public class Shell : MonoBehaviour
 				if (cursorEnabled) { HideCursor(); } else { ShowCursor(); }
 			}
 		}
+
+		//print(shiftKeyDown);
+		//print(Utils.StringifyArray<KeyCode>(keysDown.ToArray()));
 	}
 
 	void ShowCursor(){ if (!cursorEnabled) cursorRenderer.enabled = cursorEnabled = true; }
@@ -190,16 +194,23 @@ public class Shell : MonoBehaviour
 	void PrintChar(KeyCode kc)
 	{
 		if(kc != KeyCode.None){
-			//check for alphabet char keycode names and shift held
-			string c = kc.ToString ().Length == 1 && shiftKeyDown
-				? InputCharacters.typedChars [kc].ToUpper ()
-				: InputCharacters.typedChars [kc];
+			string c;
+			if (shiftKeyDown && InputCharacters.shiftedSpecialChars.ContainsKey(kc)) {
+				c = InputCharacters.shiftedSpecialChars[kc];
+			} else {
+				//check for alphabet char keycode names and shift held
+				c = shiftKeyDown //kc.ToString ().Length == 1 && 
+					? InputCharacters.typedChars[kc].ToUpper()
+					: InputCharacters.typedChars[kc];
+			}
+
+			
 			//if at right end
-			if (cursorPosition == commandLineText.Length) {commandLineText += InputCharacters.typedChars [kc];}
+			if (cursorPosition == commandLineText.Length) {commandLineText += c; }
 			//if in middle
-			else if (cursorPosition != 0) {commandLineText = commandLineText.Substring(0, cursorPosition) + InputCharacters.typedChars [kc] + commandLineText.Substring(cursorPosition, cursorOffset);}
+			else if (cursorPosition != 0) {commandLineText = commandLineText.Substring(0, cursorPosition) + c + commandLineText.Substring(cursorPosition, cursorOffset);}
 			//if at left end
-			else {commandLineText = InputCharacters.typedChars [kc] + commandLineText;}
+			else {commandLineText = c + commandLineText;}
 		}
 	}
 

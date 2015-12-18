@@ -127,4 +127,29 @@ public class InputCharacters
 		{ KeyCode.KeypadEnter, "\n" },
 		{ KeyCode.KeypadEquals, "=" }
 	};
+
+	public static Dictionary<KeyCode, string> shiftedSpecialChars = new Dictionary<KeyCode, string>(){
+		{ KeyCode.Slash, "?" },
+		{ KeyCode.Alpha0, ")" },
+		{ KeyCode.Alpha1, "!" },
+		{ KeyCode.Alpha2, "@" },
+		{ KeyCode.Alpha3, "#" },
+		{ KeyCode.Alpha4, "$" },
+		{ KeyCode.Alpha5, "%" },
+		{ KeyCode.Alpha6, "^" },
+		{ KeyCode.Alpha7, "&" },
+		{ KeyCode.Alpha8, "*" },
+		{ KeyCode.Alpha9, "(" },
+		{ KeyCode.Quote, "\"" },
+		{ KeyCode.Semicolon, ":" },
+		{ KeyCode.Equals, "+" },
+		{ KeyCode.Minus, "_" },
+		{ KeyCode.BackQuote, "~" },
+		{ KeyCode.Comma, "<" },
+		{ KeyCode.Period, ">" },
+		{ KeyCode.RightBracket, "}" },
+		{ KeyCode.LeftBracket, "{" },
+		{ KeyCode.Backslash, "|" }
+
+	};
 }
