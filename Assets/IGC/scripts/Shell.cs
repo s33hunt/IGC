@@ -6,16 +6,18 @@ using System.Collections.Generic;
 public class Shell : MonoBehaviour 
 {
 	[HideInInspector] public OperatingSystem os;
+	public Color textColor = Color.blue;
 	public enum TextMode {CLI, TextEdit}
 	public TextMode textMode = TextMode.CLI;
 	public string promptText = "[>] ";
-	public float repeatHeldKeyTime = 0.7f;
+	public float repeatHeldKeyTime = 0.7f, cursorBlinkSpeed = 0.5f;
 	public int 
 		height = 10,
 		width = 10,
 		keyRepeatsPerSecond = 10,
 		maxTextLines = 100;
 
+	Transform cursor;
 	TextMesh textDisplay;
 	List<KeyCode> keysDown = new List<KeyCode> ();
 	KeyCode _lastKey;
@@ -52,10 +54,13 @@ public class Shell : MonoBehaviour
 		get { return _historyPointer; }
 		set { _historyPointer = Mathf.Clamp(value, 0, history.Count - 1);}
 	}
+	bool cursorEnabled = true;
+	Renderer cursorRenderer;
 	float 
 		lastKeyDownTime=0, 
 		lastKeyRepeatTime=0, 
-		keyRepeatTime;
+		keyRepeatTime,
+		lastCursorBlink = 0;
 	string 
 		fullText = "",
 		commandLineText = "";
@@ -65,6 +70,7 @@ public class Shell : MonoBehaviour
 		_scrollOffset = 0,
 		_cursorOffset = 0,
 		_cursorPosition = 0;
+	
 
 	public void Init()
 	{
@@ -72,6 +78,15 @@ public class Shell : MonoBehaviour
 		textDisplay = GetComponent<TextMesh> ();
 		keyRepeatTime = 1f / keyRepeatsPerSecond;
 		textDisplay.text = promptText;
+		textDisplay.characterSize = 0.05f;
+		float
+			cwidth = textDisplay.fontSize * .0025f,   //fs:w -> 400:1
+			cheight = cwidth * 2;                   //w:h-> .5 : 1
+		cursor = transform.Find("cursor");
+		cursor.localScale = new Vector3(cwidth, cheight, 1);
+		cursorRenderer = cursor.GetComponentInChildren<Renderer>();
+		textDisplay.color = textColor;
+		cursorRenderer.material.color = textColor;
 	}
 
 	void Update ()
@@ -111,6 +126,9 @@ public class Shell : MonoBehaviour
 			
 			//key repetition
 			if (lastKeyDown != KeyCode.None && Time.time - lastKeyDownTime > repeatHeldKeyTime) {RepeatHeldKey();}
+
+			scrollOffset = 0;//jump to typing of scrolled
+			ShowCursor();
 		}
 
 		//update keys held list
@@ -119,6 +137,26 @@ public class Shell : MonoBehaviour
 		foreach (KeyCode kc in keysToRemove) {keysDown.Remove(kc);}
 		//reset key up
 		if (Input.GetKeyUp (lastKeyDown)) {lastKeyDown = KeyCode.None;}
+
+		UpdateCursorPos();
+		if(scrollOffset > 0) {
+			HideCursor();
+		} else {
+			if(Time.time > lastCursorBlink + cursorBlinkSpeed) {
+				lastCursorBlink = Time.time;
+				if (cursorEnabled) { HideCursor(); } else { ShowCursor(); }
+			}
+		}
+	}
+
+	void ShowCursor(){ if (!cursorEnabled) cursorRenderer.enabled = cursorEnabled = true; }
+	void HideCursor(){ if (cursorEnabled) cursorRenderer.enabled = cursorEnabled = false; }
+	void UpdateCursorPos()
+	{
+		cursor.localPosition = new Vector3(
+			(commandLineText.Length - cursorOffset + promptText.Length) * cursor.localScale.x,
+			cursor.localScale.y * (displayLength == 0 ? 0 : 1 - displayLength),
+			0);
 	}
 
 	void RepeatHeldKey()
@@ -200,7 +238,7 @@ public class Shell : MonoBehaviour
 				if(++wordPointer >= words.Count){break;}
 			}
 		}
-		
+
 		return string.Join ("\n", lines.ToArray ());
 	}
 

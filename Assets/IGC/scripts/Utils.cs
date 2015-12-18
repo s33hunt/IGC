@@ -20,23 +20,17 @@ public class Utils
 
 	public static bool StringIsQuoteWrapped(string str)
 	{
-
 		char[] cc = new char[] { '\"', '\'' };
-		foreach(char c in cc)//check for single AND double quotes
-		{
+		foreach(char c in cc) { //check for single AND double quotes
 			bool a = str.IndexOf(c) >= 0;
-
-			if (a)
-			{
+			if (a) {
 				var ex = SplitString(str, c.ToString());
-				if (ex.Length > 1)
-				{
+				if (ex.Length > 1) {
 					return false;
 				}
 				return true;
 			}
 		}
-		
 		return false;
 	}
 }
