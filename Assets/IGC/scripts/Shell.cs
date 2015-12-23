@@ -26,6 +26,7 @@ public class Shell : MonoBehaviour
 		keyRepeatTime,
 		lastCursorBlink = 0;
 	string
+		rawEditText = "",
 		fullText = "",
 		commandLineText = "",
 		CLISession;
@@ -182,6 +183,7 @@ public class Shell : MonoBehaviour
 
 	public void EnterTextEditMode()
 	{
+		scrollOffset = cursorOffset = cursorOffsetVertical = 0;
 		textMode = TextMode.TextEdit;
 		CLISession = fullText;
 		fullText = "";
@@ -189,6 +191,7 @@ public class Shell : MonoBehaviour
 	}
 	public void EnterCLIMode()
 	{
+		scrollOffset = cursorOffset = cursorOffsetVertical = 0;
 		textMode = TextMode.CLI;
 		fullText = CLISession;
 		CLISession = "";
@@ -198,8 +201,10 @@ public class Shell : MonoBehaviour
 	Vector2 cursorXY
 	{
 		get {
-			int y = cursorOffsetVertical - scrollOffset;
-			return new Vector2(cursorOffset, y == 0 ? 1 : 0);
+			int
+				y = cursorOffsetVertical - scrollOffset,
+				x = lines[lines.Length - 1 - y].Length - cursorOffset;
+			return new Vector2(x, y == 0 ? 1 : 0);
 		}
 	}
 
@@ -240,7 +245,7 @@ public class Shell : MonoBehaviour
 			} else if(!InputCharacters.modifierKeys.Contains(kc)){
 				if (kc == KeyCode.Return) {
 					ReturnKey ();
-				} else if (kc == KeyCode.Space && commandLineText [commandLineText.Length - 1] == ' ') {
+				//} else if (kc == KeyCode.Space && commandLineText [commandLineText.Length - 1] == ' ') {
 				} else {
 					PrintChar (kc);
 				}
@@ -276,7 +281,13 @@ public class Shell : MonoBehaviour
 			}
 			else if (editMode)
 			{
-				fullText += c;
+
+				//if at right end
+				if (cursorPosition == rawEditText.Length) { lines[(int)cursorXY.y] += c; }
+				//if in middle
+				else if (cursorPosition != 0) { rawEditText = commandLineText.Substring(0, cursorPosition) + c + commandLineText.Substring(cursorPosition, cursorOffset); }
+				//if at left end
+				else { commandLineText = c + commandLineText; }
 			}
 			
 		}
@@ -301,10 +312,10 @@ public class Shell : MonoBehaviour
 			words = new List<string> (),
 			lines = new List<string> ();
 		
-		foreach(string s in unformatted.Split(new char[1]{' '}/*, System.StringSplitOptions.RemoveEmptyEntries*/)){words.Add(s);}
+		foreach(string s in unformatted.Split(new char[1]{' '})){words.Add(s);}
 
 		while(wordPointer < words.Count){
-			if(lines.Count >= 999){break;}//just in case if infinite loops
+			if(lines.Count >= 999){break;}//just in case of infinite loops
 
 			lines.Add ("");
 
@@ -331,18 +342,22 @@ public class Shell : MonoBehaviour
 	
 	void PrintBuffer()
 	{
-		string output = fullText + (CLIMode ? FormatDisplayString(promptText + commandLineText) : "");
-		lines = output.Split(new char[1]{'\n'});
-		lineCount = lines.Length;
 		
 		int startIndex = displayLength >= height && scrollOffset > 0
 			? Mathf.Max(0, lineCount - displayLength - scrollOffset)
 			: lineCount - displayLength;
+
+		string output = CLIMode
+			? fullText + FormatDisplayString(promptText + commandLineText)
+			: output = FormatDisplayString(rawEditText);
 		
+		lines = output.Split(new char[1] { '\n' });
+		lineCount = lines.Length;
+
 		IEnumerable<string> displayLines = lines.Skip(startIndex).Take(displayLength);
-		
-		output = string.Join ("\n", displayLines.ToArray ());
-		
+
+		output = string.Join("\n", displayLines.ToArray());
+
 		textDisplay.text = output;
 
 		UpdateCursorPos();
