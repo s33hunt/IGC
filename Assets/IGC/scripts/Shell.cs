@@ -3,6 +3,19 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 
+/*
+break down func:
+
+	input handler
+		|
+		|
+	text formatter
+		/\
+	   /  \
+	CLI   Text Editor
+
+*/
+
 public class Shell : MonoBehaviour 
 {
 	[HideInInspector] public OperatingSystem os;
@@ -17,7 +30,7 @@ public class Shell : MonoBehaviour
 		keyRepeatsPerSecond = 10,
 		maxTextLines = 100;
 
-	string[] lines;
+	string[] lines = new string[0];
 	bool cursorEnabled = true;
 	Renderer cursorRenderer;
 	float
@@ -26,7 +39,7 @@ public class Shell : MonoBehaviour
 		keyRepeatTime,
 		lastCursorBlink = 0;
 	string
-		rawEditText = "",
+		rawEditText = "hello butthol",
 		fullText = "",
 		commandLineText = "",
 		CLISession;
@@ -81,7 +94,7 @@ public class Shell : MonoBehaviour
 		set { _cursorOffsetVertical = Mathf.Clamp(value, 0, lineCount); }
 	}
 	int cursorPosition {
-		get {return commandLineText.Length - cursorOffset;}
+		get {return (CLIMode ? commandLineText.Length : lines[(int)cursorXY.y].Length) - cursorOffset;}
 		set {_cursorPosition = Mathf.Clamp(value, 0, commandLineText.Length);}
 	}
 	int scrollOffset {
@@ -204,17 +217,18 @@ public class Shell : MonoBehaviour
 			int
 				y = cursorOffsetVertical - scrollOffset,
 				x = lines[lines.Length - 1 - y].Length - cursorOffset;
-			return new Vector2(x, y == 0 ? 1 : 0);
+			return new Vector2(x, y);// == 0 ? 1 : 0);
 		}
 	}
 
 	void ShowCursor(){ if (!cursorEnabled) cursorRenderer.enabled = cursorEnabled = true; }
 	void HideCursor(){ if (cursorEnabled) cursorRenderer.enabled = cursorEnabled = false; }
+
 	void UpdateCursorPos()
 	{
 		if (editMode) {
 			cursor.localPosition = new Vector3(
-				(commandLineText.Length - cursorOffset + promptText.Length) * cursor.localScale.x,
+				(lines[(int)cursorXY.y].Length - cursorOffset) * cursor.localScale.x,
 				cursor.localScale.y * -Mathf.Clamp((displayLength - (cursorOffsetVertical - scrollOffset)), 0, displayLength-1),
 				0
 			);
@@ -282,12 +296,14 @@ public class Shell : MonoBehaviour
 			else if (editMode)
 			{
 
+				print(lines.Length + ":" + (int)cursorXY.y);
+
 				//if at right end
-				if (cursorPosition == rawEditText.Length) { lines[(int)cursorXY.y] += c; }
+				if (cursorOffset == 0) { lines[(int)cursorXY.y] += c; }
 				//if in middle
-				else if (cursorPosition != 0) { rawEditText = commandLineText.Substring(0, cursorPosition) + c + commandLineText.Substring(cursorPosition, cursorOffset); }
+				//else if (cursorPosition != 0) { rawEditText = commandLineText.Substring(0, cursorPosition) + c + commandLineText.Substring(cursorPosition, cursorOffset); }
 				//if at left end
-				else { commandLineText = c + commandLineText; }
+				//else { commandLineText = c + commandLineText; }
 			}
 			
 		}
@@ -347,12 +363,17 @@ public class Shell : MonoBehaviour
 			? Mathf.Max(0, lineCount - displayLength - scrollOffset)
 			: lineCount - displayLength;
 
-		string output = CLIMode
-			? fullText + FormatDisplayString(promptText + commandLineText)
-			: output = FormatDisplayString(rawEditText);
+		string output = "";
+		if (CLIMode) {
+			output = fullText + FormatDisplayString(promptText + commandLineText);
+		} else if (editMode) {
+			output = FormatDisplayString(string.Join("\n", lines));
+		}
 		
 		lines = output.Split(new char[1] { '\n' });
 		lineCount = lines.Length;
+
+		print(fullText + "\n\n" + FormatDisplayString(string.Join("\n", lines)));
 
 		IEnumerable<string> displayLines = lines.Skip(startIndex).Take(displayLength);
 
@@ -449,13 +470,25 @@ public class Shell : MonoBehaviour
 	}
 	void BackSpace()
 	{
-		//if at right end
-		if (cursorPosition == commandLineText.Length && commandLineText.Length > 0) {
-			commandLineText = commandLineText.Substring(0, commandLineText.Length-1);
-			
-		//if in middle
-		} else if (cursorPosition > 0) {
-			commandLineText = commandLineText.Remove(cursorPosition-1, 1);
+		if (CLIMode)
+		{
+			//if at right end
+			if (cursorPosition == commandLineText.Length && commandLineText.Length > 0) {
+				commandLineText = commandLineText.Substring(0, commandLineText.Length - 1);
+			//if in middle
+			} else if (cursorPosition > 0) {
+				commandLineText = commandLineText.Remove(cursorPosition - 1, 1);
+			}
+		}
+		else if (editMode)
+		{
+			//if at right end
+			if (cursorPosition == commandLineText.Length && commandLineText.Length > 0) {
+				lines[(int)cursorXY.y] = lines[(int)cursorXY.y].Substring(0, lines[(int)cursorXY.y].Length - 1);
+			//if in middle
+			} else if (cursorPosition > 0) {
+				lines[(int)cursorXY.y] = lines[(int)cursorXY.y].Remove(cursorPosition - 1, 1);
+			}
 		}
 	}
 	#endregion
