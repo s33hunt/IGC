@@ -29,7 +29,6 @@ public class InputTester : MonoBehaviour
 
 	void ProcessInput(InputHandler.InputEvent e)
 	{
-		print(e);
 		KeyCode kc = e.keyCode;
 
 		if (kc != KeyCode.None)

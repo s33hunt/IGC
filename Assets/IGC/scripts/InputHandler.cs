@@ -35,15 +35,14 @@ public class InputHandler : MonoBehaviour
 			lastKeyDownTime = Time.time;
 		}
 	}
-	bool shiftKeyDown
+	public bool shiftKeyDown
 	{
 		get { return (keysDown.Contains(KeyCode.LeftShift) || keysDown.Contains(KeyCode.RightShift)); }
 	}
-	bool controlKeyDown
+	public bool controlKeyDown
 	{
 		get { return (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)); }
 	}
-
 	public bool KeyDown(KeyCode kc)
 	{
 		return keysDown.Contains(kc);
@@ -71,7 +70,11 @@ public class InputHandler : MonoBehaviour
 		}
 	}
 
-	void Awake() { instance = this; }
+	void Awake()
+	{
+		instance = this;
+		keyRepeatTime = 1f / keyRepeatsPerSecond;
+	}
 
 	void HandleInput(InputEvent e)
 	{
