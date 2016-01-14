@@ -22,10 +22,13 @@ public class TextDisplay : MonoBehaviour
 	int displayLength {
 		get { return displayLines.Count < height ? displayLines.Count : height; }
 	}
-	string currentLine {
-		get { return displayLines[scrollOffset + (int)cursorPosition.y]; }
+	public int currentLineNumber{
+		get { return scrollOffset + (int)cursorPosition.y; }
 	}
-	Vector2 cursorPosition {
+	public string currentLine {
+		get { return displayLines[currentLineNumber]; }
+	}
+	public Vector2 cursorPosition {
 		get { return _cursorPosition; }
 		set {
 
@@ -46,7 +49,6 @@ public class TextDisplay : MonoBehaviour
 	public void CursorRight() { cursorPosition = new Vector2(cursorPosition.x + 1, cursorPosition.y); }
 	public void CursorUp() { cursorPosition = new Vector2(cursorPosition.x, cursorPosition.y - 1); }
 	public void CursorDown() { cursorPosition = new Vector2(cursorPosition.x, cursorPosition.y + 1); }
-
 	void UpdateCursorPos()
 	{
 		cursor.localPosition = new Vector3(
@@ -54,7 +56,6 @@ public class TextDisplay : MonoBehaviour
 			cursorPosition.y * -cursor.localScale.y,
 			0
 		);
-		
 	}
 
 	public void Init()
@@ -98,10 +99,7 @@ public class TextDisplay : MonoBehaviour
 		if (Input.GetKeyDown(KeyCode.DownArrow)) { CursorDown(); }
 		if (Input.GetKeyDown(KeyCode.LeftArrow)) { CursorLeft(); }
 		if (Input.GetKeyDown(KeyCode.RightArrow)) { CursorRight(); }
-		if (Input.GetKeyDown(KeyCode.Space))
-		{
-			EditLine(lineNumber, insertString, insertNum);
-		}
+		//if (Input.GetKeyDown(KeyCode.Space)){EditLine(lineNumber, insertString, insertNum);}
 	}
 	//end test stuff
 
@@ -161,9 +159,11 @@ public class TextDisplay : MonoBehaviour
 	}
 
 
-	void EditLine(int lineNumber, string newText, int insertPosition)
+	public void EditLine(int lineNumber, string newText, int insertPosition)
 	{
-		string[] targetLines = FormatIntoLines(displayLines[lineNumber].Insert(insertPosition, newText));
+		string newline = displayLines[lineNumber].Insert(insertPosition, newText);
+		print(newline);
+        string[] targetLines = FormatIntoLines(newline);
 		
 		for(int i = targetLines.Length-1; i >= 0; i--)
 		{
@@ -173,6 +173,13 @@ public class TextDisplay : MonoBehaviour
 
 		UpdateDisplay();
 	}
+
+	public void TypeChar(string c)
+	{
+		EditLine(currentLineNumber, c, (int)cursorPosition.x);
+		CursorRight();
+	}
+
 
 	void UpdateDisplay()
 	{

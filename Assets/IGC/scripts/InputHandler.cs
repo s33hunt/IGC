@@ -55,6 +55,7 @@ public class InputHandler : MonoBehaviour
 		public Type type;
 		public State state;
 		public int value;
+		public string character;
 		public KeyCode keyCode;
 
 		public InputEvent(Type t, State s, object data = null)
@@ -64,8 +65,10 @@ public class InputHandler : MonoBehaviour
 
 			if(type == Type.scrollWheel) {
 				this.value = (int)data;
-			} else if (type == Type.modifierKey || type == Type.actionKey || type == Type.text) {
+			} else if (type == Type.modifierKey || type == Type.actionKey) {
 				this.keyCode = (KeyCode)data;
+			} else if(type == Type.text) {
+				this.character = (string)data;
 			}
 		}
 	}
@@ -110,7 +113,7 @@ public class InputHandler : MonoBehaviour
 			}
 			foreach (KeyCode kc in InputCharacters.typedChars.Keys){
 				if (Input.GetKeyDown(kc)){
-					HandleInput(new InputEvent(InputEvent.Type.text, InputEvent.State.down, kc));
+					HandleInput(new InputEvent(InputEvent.Type.text, InputEvent.State.down, InputCharacters.typedChars[kc]));
 				}
 			}
 
