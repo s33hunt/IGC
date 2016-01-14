@@ -4,29 +4,57 @@ using System.Collections.Generic;
 
 public class TextDisplay : MonoBehaviour
 {
-	[HideInInspector]
 	public Color textColor = Color.blue;
-	
+	public bool cursorEnabled = true;
+	public float cursorBlinkSpeed = 0.5f;
 	public int
 		height = 10,
 		width = 10,
 		maxTextLines = 1000;
-	List<string> displayLines = new List<string>();
-
-	string fullText = "";
+	string _currentLine = "";
 	int _scrollOffset = 0;
+	float lastCursorBlink = 0;
 	Transform cursor;
+	Renderer cursorRenderer;
 	TextMesh textDisplay;
-	int displayLength
-	{
+	Vector2 _cursorPosition = Vector2.zero;
+	List<string> displayLines = new List<string>();
+	int displayLength {
 		get { return displayLines.Count < height ? displayLines.Count : height; }
 	}
-	int scrollOffset
-	{
+	string currentLine {
+		get { return displayLines[scrollOffset + (int)cursorPosition.y]; }
+	}
+	Vector2 cursorPosition {
+		get { return _cursorPosition; }
+		set {
+			_cursorPosition = new Vector2(
+				Mathf.Clamp(value.x, 0, currentLine.Length - 1),
+				Mathf.Clamp(value.y, 0, displayLines.Count - 1)
+			);
+			UpdateCursorPos();
+		}
+	}
+	int scrollOffset {
 		get { return _scrollOffset; }
 		set { _scrollOffset = Mathf.Clamp(value, 0, Mathf.Min(displayLines.Count - displayLength, maxTextLines - displayLength)); }
 	}
-	
+
+	public void CursorLeft() { cursorPosition = new Vector2(cursorPosition.x - 1, cursorPosition.y); }
+	public void CursorRight() { cursorPosition = new Vector2(cursorPosition.x + 1, cursorPosition.y); }
+	public void CursorUp() { cursorPosition = new Vector2(cursorPosition.x, cursorPosition.y - 1); }
+	public void CursorDown() { cursorPosition = new Vector2(cursorPosition.x, cursorPosition.y + 1); }
+
+	void UpdateCursorPos()
+	{
+		cursor.localPosition = new Vector3(
+			cursorPosition.x * cursor.localScale.x,
+			cursorPosition.y * -cursor.localScale.y,
+			0
+		);
+		print(cursorPosition);
+	}
+
 	public void Init()
 	{
 		textDisplay = GetComponent<TextMesh>();
@@ -38,9 +66,19 @@ public class TextDisplay : MonoBehaviour
 
 		textDisplay.color = textColor;
 
-		displayLines.Add("");
+		cursor = transform.Find("cursor");
+		cursor.localScale = new Vector3(cwidth, cheight, 1);
+		cursorRenderer = cursor.GetComponentInChildren<Renderer>();
+		cursorRenderer.material.color = textColor;
+		
+		displayLines.Add("start");
+
+
+		print(currentLine);
+
 	}
 
+	
 	//test stuff
 	public int lineNumber = 0, insertNum = 0;
 	public string insertString = "XXXXX xxx XXX XX";
@@ -58,12 +96,18 @@ public class TextDisplay : MonoBehaviour
 			"cccc c c ccc cc c ccc  ccc ccc c";
 	void Update()
 	{
+		if (Input.GetKeyDown(KeyCode.UpArrow)) { CursorUp(); }
+		if (Input.GetKeyDown(KeyCode.DownArrow)) { CursorDown(); }
+		if (Input.GetKeyDown(KeyCode.LeftArrow)) { CursorLeft(); }
+		if (Input.GetKeyDown(KeyCode.RightArrow)) { CursorRight(); }
 		if (Input.GetKeyDown(KeyCode.Space))
 		{
 			EditLine(lineNumber, insertString, insertNum);
 		}
 	}
 	//end test stuff
+
+
 
 
 	void Start() {
