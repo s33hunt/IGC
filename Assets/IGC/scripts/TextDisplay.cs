@@ -28,10 +28,12 @@ public class TextDisplay : MonoBehaviour
 	Vector2 cursorPosition {
 		get { return _cursorPosition; }
 		set {
-			_cursorPosition = new Vector2(
-				Mathf.Clamp(value.x, 0, currentLine.Length - 1),
-				Mathf.Clamp(value.y, 0, displayLines.Count - 1)
-			);
+
+			_cursorPosition.y = Mathf.Clamp(value.y, 0, displayLines.Count - 1); //gotta do y first so currentLine can have the right number
+			_cursorPosition.x = Mathf.Clamp(value.x, 0, currentLine.Length - 1);
+
+			print(_cursorPosition+"    :    " + currentLine);
+
 			UpdateCursorPos();
 		}
 	}
@@ -52,7 +54,7 @@ public class TextDisplay : MonoBehaviour
 			cursorPosition.y * -cursor.localScale.y,
 			0
 		);
-		print(cursorPosition);
+		
 	}
 
 	public void Init()
@@ -71,11 +73,7 @@ public class TextDisplay : MonoBehaviour
 		cursorRenderer = cursor.GetComponentInChildren<Renderer>();
 		cursorRenderer.material.color = textColor;
 		
-		displayLines.Add("start");
-
-
-		print(currentLine);
-
+		displayLines.Add("");
 	}
 
 	
@@ -169,7 +167,7 @@ public class TextDisplay : MonoBehaviour
 		
 		for(int i = targetLines.Length-1; i >= 0; i--)
 		{
-			print(targetLines[i] + "\n" + i + "\n" + lineNumber);
+			//print(targetLines[i] + "\n" + i + "\n" + lineNumber);
 			displayLines.Insert(lineNumber, targetLines[i]);
 		}
 
