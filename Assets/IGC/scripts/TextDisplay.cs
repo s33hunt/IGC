@@ -11,7 +11,7 @@ public class TextDisplay : MonoBehaviour
 		height = 10,
 		width = 10,
 		maxTextLines = 1000;
-	string _currentLine = "";
+	string _currentLine = "", softBreakString = "<<soft_break>>";
 	int _scrollOffset = 0;
 	float lastCursorBlink = 0;
 	Transform cursor;
@@ -82,17 +82,15 @@ public class TextDisplay : MonoBehaviour
 	public int lineNumber = 0, insertNum = 0;
 	public string insertString = "XXXXX xxx XXX XX";
 	string testString =
-			"aa  aa a a aaaaaa a a aaa a a a\n" +
-			"bbbb b b bbb bb bbb b b bb b bbb b\n" +
-			"aa  aa a a aaaaaa a a aaa a a a\n" +
-			"\n" +
-			"cccc c c ccc cc c ccc  ccc ccc c\n" +
-			"bbbb b b bbb bb bbb b b bb b bbb b\n" +
-			"\n" +
-			"cccc c c ccc cc c ccc  ccc ccc c\n" +
-			"aa  aa a a aaaaaa a a aaa a a a\n" +
-			"bbbb b b bbb bb bbb b b bb b bbb b\n" +
-			"cccc c c ccc cc c ccc  ccc ccc c";
+		"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec consectetur ante hendrerit. Donec et mollis dolor. " +
+		"\n" +
+		"Praesent et diam eget libero egestas mattis sit amet vitae augue. Nam tincidunt congue enim, ut porta lorem lacinia consectetur. Donec ut libero sed arcu vehicula ultricies a non tortor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ut gravida lorem. " +
+		"\n" + 
+		"\n" +
+		"Ut turpis felis, pulvinar a semper sed, adipiscing id dolor. Pellentesque auctor nisi id magna consequat sagittis. Curabitur dapibus enim sit amet elit pharetra tincidunt feugiat nisl imperdiet. " +
+		"\n" + 
+		"\n" +
+		"Ut convallis libero in urna ultrices accumsan. Donec sed odio eros. Donec viverra mi quis quam pulvinar at malesuada arcu rhoncus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. In rutrum accumsan ultricies. Mauris vitae nisi at sem facilisis semper ac in est.";
 	void Update()
 	{
 		if (Input.GetKeyDown(KeyCode.UpArrow)) { CursorUp(); }
@@ -111,14 +109,12 @@ public class TextDisplay : MonoBehaviour
 		EditLine(0, testString, 0);
 	}
 	
-	string[] FormatIntoLines(string unformatted)
+	string[] FormatIntoLines(string unformatted) //this just splits lines if unformatted text has breaks
 	{
 		List<string> lines = new List<string>();
 
 		foreach (string l in unformatted.Split(new char[1] { '\n' })) {
-			foreach (string formattedLine in FormatLine(l)) {
-				lines.Add(formattedLine);
-			}
+			lines.Add(FormatLine(l));
 		}
 		return lines.ToArray();
 	}
@@ -128,7 +124,7 @@ public class TextDisplay : MonoBehaviour
 		return string.Join("\n", FormatIntoLines(unformatted));
 	}
 
-	string[] FormatLine(string unformatted)
+	string FormatLine(string unformatted)
 	{
 		int wordPointer = 0;
 		List<string>
@@ -155,15 +151,17 @@ public class TextDisplay : MonoBehaviour
 			}
 		}
 
-		return lines.ToArray();
+		return string.Join(softBreakString, lines.ToArray());
 	}
 
 
 	public void EditLine(int lineNumber, string newText, int insertPosition)
 	{
 		string newline = displayLines[lineNumber].Insert(insertPosition, newText);
-		print(newline);
-        string[] targetLines = FormatIntoLines(newline);
+
+		newline = newline.Replace(softBreakString, "");
+
+		string[] targetLines = FormatIntoLines(newline);
 		
 		for(int i = targetLines.Length-1; i >= 0; i--)
 		{
@@ -183,7 +181,7 @@ public class TextDisplay : MonoBehaviour
 
 	void UpdateDisplay()
 	{
-		textDisplay.text = string.Join("\n", displayLines.ToArray());
+		textDisplay.text = string.Join("\n", displayLines.ToArray()).Replace(softBreakString, "\n");
 	}
 }
 
