@@ -7,10 +7,9 @@ public class TextDisplay2 : MonoBehaviour
 	public int width = 30, height = 10;
 	
 	TextMesh textDisplay;
-	string rawText;
-	string[] 
-		flowedText,
-		displayText;
+	string 
+		rawText,
+		flowedText;
 	int _cursorOffsetL = 0, _cursorOffsetR = 0;
 	int cursorOffsetL
 	{
@@ -52,6 +51,13 @@ public class TextDisplay2 : MonoBehaviour
 		
 	}
 	//</testing>
+
+
+	void Update()
+	{
+		textDisplay.text = flowedText;
+	}
+
 	public void Init()
 	{
 		cursorOffsetL = 0;
@@ -77,12 +83,22 @@ public class TextDisplay2 : MonoBehaviour
 	public void CursorLeft() { cursorOffsetL++; }
 	public void CursorRight() { cursorOffsetL--; }
 
-	public void CursorUp() {  }
-	public void CursorDown() {  }
-
-
-
-
+	public void CursorUp()
+	{
+		//get text above cursor
+		string above = rawText.Substring(0, cursorOffsetR);
+		//break into lines
+		string[] linesAbove = SplitLines(above);
+		//...
+	}
+	public void CursorDown()
+	{
+		string
+			above = rawText.Substring(0, cursorOffsetR), 
+			below = rawText.Substring(cursorOffsetR, cursorOffsetL);
+		//...
+	}
+	
 	public void InsertText(string text)
 	{
 		rawText =
@@ -103,12 +119,12 @@ public class TextDisplay2 : MonoBehaviour
 	public string FlowText(string raw = null)
 	{
 		raw = raw ?? rawText;
-		print(raw);
 		string[] lines = SplitLines(raw);
 		List<string> flowed = new List<string>();
 		foreach (string l in lines) { flowed.Add(FlowLine(l)); }
-		textDisplay.text = string.Join("\n", flowed.ToArray());
-		return textDisplay.text;
+		flowedText = string.Join("\n", flowed.ToArray());
+		//textDisplay.text = string.Join("\n", flowed.ToArray());
+		return flowedText;
 	}
 
 	string[] SplitLines (string raw){return raw.Split(new char[1] { '\n' });}

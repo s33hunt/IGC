@@ -16,6 +16,8 @@ public class TextEditor : MonoBehaviour
 	{
 		if (e.type == InputHandler.InputEvent.Type.actionKey)
 		{
+			if (e.keyCode == KeyCode.UpArrow) { display.CursorUp(); }
+			if (e.keyCode == KeyCode.DownArrow) { display.CursorDown(); }
 			if (e.keyCode == KeyCode.LeftArrow) { display.CursorLeft(); }
 			if (e.keyCode == KeyCode.RightArrow) { display.CursorRight(); }
 		}
