@@ -3,20 +3,25 @@ using System.Collections;
 
 public class TextEditor : MonoBehaviour
 {
-	TextDisplay display;
+	TextDisplay2 display;
 
 
 	void Start()
 	{
-		display = GetComponent<TextDisplay>();
+		display = GetComponent<TextDisplay2>();
 		InputHandler.instance.onInput += ProcessInput;
 	}
 
 	void ProcessInput(InputHandler.InputEvent e)
 	{
-		if (e.type == InputHandler.InputEvent.Type.text)
+		if (e.type == InputHandler.InputEvent.Type.actionKey)
 		{
-			display.TypeChar(e.character);
+			if (e.keyCode == KeyCode.LeftArrow) { display.CursorLeft(); }
+			if (e.keyCode == KeyCode.RightArrow) { display.CursorRight(); }
+		}
+		else if (e.type == InputHandler.InputEvent.Type.text)
+		{
+			display.InsertText(e.character);
 		}
 	}
 }
