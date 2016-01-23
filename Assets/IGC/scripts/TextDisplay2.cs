@@ -5,6 +5,22 @@ using System.Collections.Generic;
 
 public class TextDisplay2 : MonoBehaviour
 {
+
+	float lastCursorBlink = 0;
+	Transform cursor;
+	Renderer cursorRenderer;
+	public bool cursorEnabled = true;
+	public float cursorBlinkSpeed = 0.5f;
+	void UpdateCursorPos()
+	{
+		//cursor.localPosition = new Vector3(
+			//cursorPosition.x * cursor.localScale.x,
+			//cursorPosition.y * -cursor.localScale.y,
+			//0
+		//);
+	}
+
+	public Color textColor = Color.blue;
 	public int width = 30, height = 10;	
 	TextMesh textDisplay;
 	public int currentLineNumber = 0;
@@ -42,6 +58,18 @@ public class TextDisplay2 : MonoBehaviour
 	{
 		cursorOffsetL = 0;
 		textDisplay = GetComponent<TextMesh>();
+		textDisplay.characterSize = 0.05f;
+		float
+			cwidth = textDisplay.fontSize * .0025f,   //fs:w -> 400:1
+			cheight = cwidth * 2;                   //w:h-> .5 : 1
+
+		textDisplay.color = textColor;
+
+		cursor = transform.Find("cursor");
+		cursor.localScale = new Vector3(cwidth, cheight, 1);
+		cursorRenderer = cursor.GetComponentInChildren<Renderer>();
+		cursorRenderer.material.color = textColor;
+
 		flowedText = FlowText();
 	}
 	
