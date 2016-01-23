@@ -18,8 +18,8 @@ public class TextEditor : MonoBehaviour
 		{
 			if (e.keyCode == KeyCode.UpArrow) { display.CursorUp(); }
 			if (e.keyCode == KeyCode.DownArrow) { display.CursorDown(); }
-			if (e.keyCode == KeyCode.LeftArrow) { display.CursorLeft(); }
-			if (e.keyCode == KeyCode.RightArrow) { display.CursorRight(); }
+			if (e.keyCode == KeyCode.LeftArrow) { display.CursorLeft(); print(TextDisplay2.instance.cursorOffsetL + ":" + TextDisplay2.instance.cursorOffsetR + "\n" + TextDisplay2.instance.rawText[TextDisplay2.instance.cursorOffsetR] + ":" + TextDisplay2.instance.rawText[TextDisplay2.instance.cursorOffsetR]); }
+			if (e.keyCode == KeyCode.RightArrow) { display.CursorRight(); print(TextDisplay2.instance.cursorOffsetL + ":" + TextDisplay2.instance.cursorOffsetR + "\n" + TextDisplay2.instance.rawText[TextDisplay2.instance.cursorOffsetR] + ":" + TextDisplay2.instance.rawText[TextDisplay2.instance.cursorOffsetR]); }
 		}
 		else if (e.type == InputHandler.InputEvent.Type.text)
 		{
