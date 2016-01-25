@@ -11,15 +11,15 @@ public class TextDisplay2 : MonoBehaviour
 	Renderer cursorRenderer;
 	public bool cursorEnabled = true;
 	public float cursorBlinkSpeed = 0.5f;
-	void UpdateCursorPos()
+	void UpdateCursor()
 	{
-		//int x = cursorOffsetR,
-		//	y;
-		//cursor.localPosition = new Vector3(
-		//	cursorPosition.x * cursor.localScale.x,
-		//	cursorPosition.y * -cursor.localScale.y,
-		//	0
-		//);
+		if(cursor == null) { return; }
+		
+		cursor.localPosition = new Vector3(
+			currentLineOffset * cursor.localScale.x,
+			GetCurrentLine() * -cursor.localScale.y,
+			0
+		);
 	}
 
 	public Color textColor = Color.blue;
@@ -42,14 +42,14 @@ public class TextDisplay2 : MonoBehaviour
 		set {
 			_cursorOffsetL = Mathf.Clamp(value, 0, rawText.Length);
 			_cursorOffsetR = rawText.Length - _cursorOffsetL;
-			UpdateCursorPos();
+			UpdateCursor();
 	}}
 	public int cursorOffsetR {
 		get { return _cursorOffsetR; }
 		set {
 			_cursorOffsetR = Mathf.Clamp(value, 0, rawText.Length);
 			_cursorOffsetL = rawText.Length - _cursorOffsetR;
-			UpdateCursorPos();
+			UpdateCursor();
 	}}
 	//IEnumerable<string> displayLines = lines.Skip(startIndex).Take(displayLength);
 
@@ -78,14 +78,18 @@ public class TextDisplay2 : MonoBehaviour
 		flowedText = FlowText();
 	}
 	
-	public void CursorLeft() { cursorOffsetL++; }
-	public void CursorRight() { cursorOffsetL--; }
+	public void CursorLeft() { GetCurrentLine(); cursorOffsetL++; }
+	public void CursorRight() { GetCurrentLine(); cursorOffsetL--; }
 	public void CursorUp() { if (flowedLines.Length > 1) { cursorOffsetL += flowedLines[GetCurrentLine() - 1].Length; } }
 	public void CursorDown(){ if (GetCurrentLine() < flowedLines.Length-1) { cursorOffsetL -= flowedLines[GetCurrentLine()].Length; } }
 
 	int GetCurrentLine()
 	{
-		return SplitLines(FlowText(rawText.Substring(0, cursorOffsetR))).Length - 1;
+		string flowed = FlowText(rawText.Substring(0, cursorOffsetR));
+		string[] split = SplitLines(flowed);
+		currentLineOffset = split[split.Length - 1].Length;
+		print(currentLineOffset);
+		return split.Length - 1;
 	}
 
 	
