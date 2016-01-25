@@ -13,17 +13,20 @@ public class TextDisplay2 : MonoBehaviour
 	public float cursorBlinkSpeed = 0.5f;
 	void UpdateCursorPos()
 	{
+		//int x = cursorOffsetR,
+		//	y;
 		//cursor.localPosition = new Vector3(
-			//cursorPosition.x * cursor.localScale.x,
-			//cursorPosition.y * -cursor.localScale.y,
-			//0
+		//	cursorPosition.x * cursor.localScale.x,
+		//	cursorPosition.y * -cursor.localScale.y,
+		//	0
 		//);
 	}
 
 	public Color textColor = Color.blue;
 	public int width = 30, height = 10;	
 	TextMesh textDisplay;
-	public int currentLineNumber = 0;
+	public int 
+		currentLineOffset = 0;
 	string[] flowedLines;
 	public string 
 		rawText, 
@@ -39,12 +42,14 @@ public class TextDisplay2 : MonoBehaviour
 		set {
 			_cursorOffsetL = Mathf.Clamp(value, 0, rawText.Length);
 			_cursorOffsetR = rawText.Length - _cursorOffsetL;
+			UpdateCursorPos();
 	}}
 	public int cursorOffsetR {
 		get { return _cursorOffsetR; }
 		set {
 			_cursorOffsetR = Mathf.Clamp(value, 0, rawText.Length);
 			_cursorOffsetL = rawText.Length - _cursorOffsetR;
+			UpdateCursorPos();
 	}}
 	//IEnumerable<string> displayLines = lines.Skip(startIndex).Take(displayLength);
 
@@ -53,7 +58,7 @@ public class TextDisplay2 : MonoBehaviour
 	{
 		textDisplay.text = flowedText;
 	}
-
+	
 	public void Init()
 	{
 		cursorOffsetL = 0;
@@ -75,32 +80,14 @@ public class TextDisplay2 : MonoBehaviour
 	
 	public void CursorLeft() { cursorOffsetL++; }
 	public void CursorRight() { cursorOffsetL--; }
-	public void CursorUp()
+	public void CursorUp() { if (flowedLines.Length > 1) { cursorOffsetL += flowedLines[GetCurrentLine() - 1].Length; } }
+	public void CursorDown(){ if (GetCurrentLine() < flowedLines.Length-1) { cursorOffsetL -= flowedLines[GetCurrentLine()].Length; } }
+
+	int GetCurrentLine()
 	{
-		//get text above cursor
-		string 
-			aboveLine = "",
-			currentLine = "",
-			aboveText = rawText.Substring(0, cursorOffsetR);
-		//break into lines
-		string[] linesAbove = SplitLines(FlowText(aboveText));
-
-		currentLineNumber = linesAbove.Length - 1;
-
-		if(linesAbove.Length > 1) {
-			aboveLine = linesAbove[linesAbove.Length - 2];
-			currentLine = linesAbove[linesAbove.Length - 1];
-		} else { return; }
-
-		cursorOffsetL += aboveLine.Length;
-
-		print(TextDisplay2.instance.cursorOffsetL + ":" + TextDisplay2.instance.cursorOffsetR + "\n" + TextDisplay2.instance.rawText[TextDisplay2.instance.cursorOffsetR] + ":" + TextDisplay2.instance.rawText[TextDisplay2.instance.cursorOffsetR]);
+		return SplitLines(FlowText(rawText.Substring(0, cursorOffsetR))).Length - 1;
 	}
-	public void CursorDown()
-	{
-		string below = rawText.Substring(cursorOffsetR, cursorOffsetL);
-		//...
-	}
+
 	
 	public void InsertText(string text)
 	{
@@ -121,13 +108,14 @@ public class TextDisplay2 : MonoBehaviour
 
 	public string FlowText(string raw = null)
 	{
-		bool snippet = raw == null;
+		bool snippet = raw != null;
 		raw = raw ?? rawText;
 		string[] lines = SplitLines(raw);
 		List<string> flowed = new List<string>();
 		foreach (string l in lines) { flowed.Add(FlowLine(l)); }
-		if (!snippet) {flowedLines = flowed.ToArray();}
-		return string.Join("\n", flowed.ToArray());
+		string formated = string.Join("\n", flowed.ToArray());
+		if (!snippet) {flowedLines = SplitLines(formated);}
+		return formated;
 	}
 
 	string[] SplitLines (string raw){return raw.Split(new char[1] { '\n' });}
